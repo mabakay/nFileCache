@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFileCache", "NFileCache\NFileCache.csproj", "{E13FD5FE-7D45-4A90-8FBB-C498BD144940}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nFileCache", "nFileCache\nFileCache.csproj", "{E13FD5FE-7D45-4A90-8FBB-C498BD144940}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFileCache.UnitTests", "NFileCache.UnitTests\NFileCache.UnitTests.csproj", "{A9870C82-93D1-4BC5-BA5C-FBF5001B2EA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nFileCache.UnitTests", "nFileCache.UnitTests\nFileCache.UnitTests.csproj", "{A9870C82-93D1-4BC5-BA5C-FBF5001B2EA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

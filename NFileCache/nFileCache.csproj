@@ -53,11 +53,11 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="INFileSerializer.cs" />
+    <Compile Include="IFileSerializer.cs" />
     <Compile Include="NFileCache.cs" />
-    <Compile Include="NFileCacheEventArgs.cs" />
-    <Compile Include="NFileCacheItem.cs" />
-    <Compile Include="NFileSerializer.cs" />
+    <Compile Include="FileCacheEventArgs.cs" />
+    <Compile Include="FileCacheItem.cs" />
+    <Compile Include="FileSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializableCacheItemPolicy.cs" />
     <Compile Include="SerializableStream.cs" />

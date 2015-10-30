@@ -9,7 +9,7 @@ Consult "LICENSE.txt" included in this package for the complete Ms-PL license.
 
 namespace System.Runtime.Caching
 {
-    public sealed class NFileCacheEventArgs : EventArgs
+    public sealed class FileCacheEventArgs : EventArgs
     {
         #region Properties
 
@@ -20,7 +20,7 @@ namespace System.Runtime.Caching
 
         #region Constructors
 
-        public NFileCacheEventArgs(long currentSize, long maxSize)
+        public FileCacheEventArgs(long currentSize, long maxSize)
         {
             CurrentCacheSize = currentSize;
             MaxCacheSize = maxSize;

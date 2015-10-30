@@ -9,7 +9,7 @@ Consult "LICENSE.txt" included in this package for the complete Ms-PL license.
 
 namespace System.Runtime.Caching
 {
-    public sealed class NFileCacheItem
+    public sealed class FileCacheItem
     {
         #region Properties
         
@@ -21,7 +21,7 @@ namespace System.Runtime.Caching
 
         #region Constructors
 
-        public NFileCacheItem(string key, CacheItemPolicy policy = null, object payload = null)
+        public FileCacheItem(string key, CacheItemPolicy policy = null, object payload = null)
         {
             Key = key;
             Policy = policy;

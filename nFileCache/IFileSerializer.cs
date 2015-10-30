@@ -11,9 +11,9 @@ using System.IO;
 
 namespace System.Runtime.Caching
 {
-    public interface INFileSerializer
+    public interface IFileSerializer
     {
-        NFileCacheItem Deserialize(Stream stream);
-        void Serialize(Stream stream, NFileCacheItem cacheItem);
+        FileCacheItem Deserialize(Stream stream);
+        void Serialize(Stream stream, FileCacheItem cacheItem);
     }
 }

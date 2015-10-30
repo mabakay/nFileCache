@@ -57,9 +57,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\nFileCache\NFileCache.csproj">
+    <ProjectReference Include="..\nFileCache\nFileCache.csproj">
       <Project>{E13FD5FE-7D45-4A90-8FBB-C498BD144940}</Project>
-      <Name>NFileCache</Name>
+      <Name>nFileCache</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

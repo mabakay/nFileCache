@@ -13,7 +13,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace System.Runtime.Caching
 {
-    internal class NFileSerializer : INFileSerializer
+    internal class FileSerializer : IFileSerializer
     {
         #region Fields
 
@@ -23,18 +23,18 @@ namespace System.Runtime.Caching
 
         #region Constructors
 
-        public NFileSerializer(SerializationBinder binder)
+        public FileSerializer(SerializationBinder binder)
         {
             _binder = binder;
         } 
 
         #endregion
 
-        #region INFileSerializer
+        #region IFileSerializer
 
-        public NFileCacheItem Deserialize(Stream stream)
+        public FileCacheItem Deserialize(Stream stream)
         {
-            NFileCacheItem item = null;
+            FileCacheItem item = null;
 
             BinaryFormatter formatter = new BinaryFormatter { Binder = _binder };
 
@@ -49,7 +49,7 @@ namespace System.Runtime.Caching
                     payload = new MemoryStream(((SerializableStream)payload).Data);
                 }
 
-                item = new NFileCacheItem(key, policy, payload);
+                item = new FileCacheItem(key, policy, payload);
             }
             catch (SerializationException)
             {
@@ -59,7 +59,7 @@ namespace System.Runtime.Caching
             return item;
         }
 
-        public void Serialize(Stream stream, NFileCacheItem cacheItem)
+        public void Serialize(Stream stream, FileCacheItem cacheItem)
         {
             BinaryFormatter formatter = new BinaryFormatter();
 

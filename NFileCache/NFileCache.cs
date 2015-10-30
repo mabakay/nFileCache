@@ -23,7 +23,7 @@ namespace System.Runtime.Caching
 
         private static int _nameCounter = 1;
         private readonly string _name = "FileCache_" + _nameCounter;
-        private readonly INFileSerializer _serializer;
+        private readonly IFileSerializer _serializer;
         private CacheItemPolicy _defaultPolicy = new CacheItemPolicy();
         private TimeSpan _accessTimeout = TimeSpan.Zero;
         private long _maxCacheSize = long.MaxValue;
@@ -111,7 +111,7 @@ namespace System.Runtime.Caching
         /// <summary>
         /// Event that will be called when <see cref="MaxCacheSize"/> is reached.
         /// </summary>
-        public event EventHandler<NFileCacheEventArgs> MaxCacheSizeReached;
+        public event EventHandler<FileCacheEventArgs> MaxCacheSizeReached;
 
         /// <summary>
         /// The default cache path used by cache.
@@ -173,7 +173,7 @@ namespace System.Runtime.Caching
         /// <param name="calculateCacheSize">If true, will calculate the cache's current size upon new object creation.
         /// Turned off by default as directory traversal is somewhat expensive and may not always be necessary based on use case.
         /// </param>
-        public NFileCache(INFileSerializer serializer, bool calculateCacheSize = false)
+        public NFileCache(IFileSerializer serializer, bool calculateCacheSize = false)
             : this(null, serializer, calculateCacheSize)
         {
 
@@ -188,7 +188,7 @@ namespace System.Runtime.Caching
         /// Turned off by default as directory traversal is somewhat expensive and may not always be necessary based on use case.
         /// </param>
         public NFileCache(string cacheRoot, SerializationBinder binder, bool calculateCacheSize = false) :
-            this(cacheRoot, new NFileSerializer(binder), calculateCacheSize)
+            this(cacheRoot, new FileSerializer(binder), calculateCacheSize)
         {
 
         }
@@ -201,7 +201,7 @@ namespace System.Runtime.Caching
         /// <param name="calculateCacheSize">If true, will calculate the cache's current size upon new object creation.
         /// Turned off by default as directory traversal is somewhat expensive and may not always be necessary based on use case.
         /// </param>
-        public NFileCache(string cacheRoot, INFileSerializer serializer, bool calculateCacheSize = false)
+        public NFileCache(string cacheRoot, IFileSerializer serializer, bool calculateCacheSize = false)
         {
             Interlocked.Increment(ref _nameCounter);
             _serializer = serializer;
@@ -280,7 +280,7 @@ namespace System.Runtime.Caching
         {
             string cacheItemPath = GetItemPath(key, regionName);
 
-            NFileCacheItem item = ReadFile(cacheItemPath);
+            FileCacheItem item = ReadFile(cacheItemPath);
 
             return item.Policy;
         }
@@ -341,9 +341,9 @@ namespace System.Runtime.Caching
         /// <summary>
         /// This function serves to centralize file reads within this class.
         /// </summary>
-        private NFileCacheItem ReadFile(string filePath)
+        private FileCacheItem ReadFile(string filePath)
         {
-            NFileCacheItem item = null;
+            FileCacheItem item = null;
 
             if (File.Exists(filePath))
             {
@@ -359,7 +359,7 @@ namespace System.Runtime.Caching
         /// <summary>
         /// This function serves to centralize file writes within this class
         /// </summary>
-        private void WriteFile(string filePath, NFileCacheItem data)
+        private void WriteFile(string filePath, FileCacheItem data)
         {
             // Remove current item from cache size calculations
             if (File.Exists(filePath))
@@ -386,7 +386,7 @@ namespace System.Runtime.Caching
             if (CurrentCacheSize > MaxCacheSize)
             {
                 if (MaxCacheSizeReached != null)
-                    MaxCacheSizeReached(this, new NFileCacheEventArgs(CurrentCacheSize, MaxCacheSize));
+                    MaxCacheSizeReached(this, new FileCacheEventArgs(CurrentCacheSize, MaxCacheSize));
             }
         }
 
@@ -464,7 +464,7 @@ namespace System.Runtime.Caching
                 }
             }
 
-            NFileCacheItem newItem = new NFileCacheItem(key, policy, value);
+            FileCacheItem newItem = new FileCacheItem(key, policy, value);
 
             WriteFile(cacheItemPath, newItem);
 
@@ -515,7 +515,7 @@ namespace System.Runtime.Caching
         {
             string cacheItemPath = GetItemPath(key, regionName);
 
-            NFileCacheItem item = ReadFile(cacheItemPath);
+            FileCacheItem item = ReadFile(cacheItemPath);
 
             if (item == null)
             {
