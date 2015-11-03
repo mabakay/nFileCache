@@ -573,7 +573,7 @@ namespace System.Runtime.Caching
                 return 0;
             }
 
-            return Directory.EnumerateFiles(cachePath, "*", SearchOption.AllDirectories).Count();
+            return Directory.EnumerateFiles(cachePath, "*", SearchOption.AllDirectories).LongCount();
         }
 
         /// <summary>
