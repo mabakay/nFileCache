@@ -9,7 +9,7 @@
     <ProjectGuid>{A9870C82-93D1-4BC5-BA5C-FBF5001B2EA1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NFC.UnitTests</RootNamespace>
+    <RootNamespace>nFileCache.UnitTests</RootNamespace>
     <AssemblyName>NFileCache.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

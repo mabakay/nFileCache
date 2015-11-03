@@ -1,9 +1,9 @@
 ﻿/*
-Copyright 2014 mabakay, based on FileCache (http://fc.codeplex.com)
+Copyright 2015 mabakay, based on FileCache (http://fc.codeplex.com)
 
-This file is part of NFileCache (http://nfilecache.codeplex.com).
+This file is part of nFileCache (https://github.com/mabakay/nFileCache).
 
-NFileCache is distributed under the Microsoft Public License (Ms-PL).
+nFileCache is distributed under the Microsoft Public License (Ms-PL).
 Consult "LICENSE.txt" included in this package for the complete Ms-PL license.
 */
 

@@ -1,6 +1,15 @@
-﻿using System;
+﻿/*
+Copyright 2015 mabakay, based on FileCache (http://fc.codeplex.com)
 
-namespace nFC.UnitTests
+This file is part of nFileCache (https://github.com/mabakay/nFileCache).
+
+nFileCache is distributed under the Microsoft Public License (Ms-PL).
+Consult "LICENSE.txt" included in this package for the complete Ms-PL license.
+*/
+
+using System;
+
+namespace nFileCache.UnitTests
 {
     [Serializable]
     public class CustomObjA

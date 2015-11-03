@@ -7,7 +7,7 @@
     <ProjectGuid>{E86D825B-A7DA-4094-8191-B3EA9241C56A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>nFileCache.Signed</RootNamespace>
+    <RootNamespace>System.Runtime.Caching</RootNamespace>
     <AssemblyName>nFileCache.Signed</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
