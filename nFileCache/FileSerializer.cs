@@ -44,9 +44,10 @@ namespace System.Runtime.Caching
                 CacheItemPolicy policy = ((SerializableCacheItemPolicy)formatter.Deserialize(stream)).GetCacheItemPolicy();
                 object payload = formatter.Deserialize(stream);
 
-                if (payload is SerializableStream)
+                SerializableStream serializableStream = payload as SerializableStream;
+                if (serializableStream != null)
                 {
-                    payload = new MemoryStream(((SerializableStream)payload).Data);
+                    payload = new MemoryStream(serializableStream.Data);
                 }
 
                 item = new FileCacheItem(key, policy, payload);

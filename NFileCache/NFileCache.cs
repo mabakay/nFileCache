@@ -528,10 +528,12 @@ namespace System.Runtime.Caching
                 // Set the item to null
                 item.Payload = null;
 
-                CurrentCacheSize -= new FileInfo(cacheItemPath).Length;
+                FileInfo fi = new FileInfo(cacheItemPath);
+
+                CurrentCacheSize -= fi.Length;
 
                 // Delete the file from the cache
-                File.Delete(cacheItemPath);
+                fi.Delete();
             }
             else
             {
@@ -618,21 +620,18 @@ namespace System.Runtime.Caching
         {
             object valueToDelete = null;
 
-            if (Contains(key, regionName))
-            {
-                string cacheItemPath = GetItemPath(key, regionName);
+            string cacheItemPath = GetItemPath(key, regionName);
 
-                //remove cache entry
+            FileInfo fi = new FileInfo(cacheItemPath);
+
+            if (fi.Exists)
+            {
                 valueToDelete = Get(key, regionName);
 
-                if (valueToDelete != null)
-                {
-                    FileInfo fi = new FileInfo(cacheItemPath);
+                CurrentCacheSize -= fi.Length;
 
-                    CurrentCacheSize -= fi.Length;
-
-                    fi.Delete();
-                }
+                // Remove cache entry
+                fi.Delete();
             }
 
             return valueToDelete;
