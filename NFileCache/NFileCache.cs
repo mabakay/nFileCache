@@ -17,9 +17,13 @@ namespace System.Runtime.Caching
 {
     public sealed class NFileCache : ObjectCache
     {
-        #region Fields
+        #region Consts
 
-        private const string CacheFolderName = "cache";
+        private const string DefaultCacheFolderName = "cache";
+
+        #endregion
+
+        #region Fields
 
         private static int _nameCounter = 1;
         private readonly string _name = "FileCache_" + _nameCounter;
@@ -114,15 +118,9 @@ namespace System.Runtime.Caching
         public event EventHandler<FileCacheEventArgs> MaxCacheSizeReached;
 
         /// <summary>
-        /// The default cache path used by cache.
+        /// Event that will be called when cache size was shrinked.
         /// </summary>
-        private string DefaultCachePath
-        {
-            get
-            {
-                return Path.Combine(Directory.GetCurrentDirectory(), CacheFolderName);
-            }
-        }
+        public event EventHandler<FileCacheEventArgs> CacheResized;
 
         #endregion
 
@@ -206,13 +204,23 @@ namespace System.Runtime.Caching
             Interlocked.Increment(ref _nameCounter);
             _serializer = serializer;
 
-            CacheDir = cacheRoot ?? DefaultCachePath;
+            if (cacheRoot == null || !Path.IsPathRooted(cacheRoot))
+            {
+                CacheDir = Path.Combine(Directory.GetCurrentDirectory(), cacheRoot ?? DefaultCacheFolderName);
+            }
+            else
+            {
+                CacheDir = cacheRoot;
+            }
+
             DefaultRegion = null;
 
             if (calculateCacheSize)
             {
                 CurrentCacheSize = GetCacheSize();
             }
+
+            MaxCacheSizeReached += NFileCache_MaxCacheSizeReached;
         }
 
         #endregion
@@ -246,29 +254,38 @@ namespace System.Runtime.Caching
         }
 
         /// <summary>
-        /// Flushes the cache based on last access date, filtered by optional region.
+        /// Flushes the cache based on expiration date, filtered by optional region.
         /// </summary>
         /// <param name="minDate">Minimum date of cache item last access date.</param>
         /// <param name="regionName">The region to flush. If NULL, will flush all regions.</param>
-        public void Flush(DateTime minDate, string regionName = null)
+        /// <returns>The amount removed (in bytes).</returns>
+        public long Flush(DateTime minDate, string regionName = null)
         {
-            string cachePath = regionName == null ? CacheDir : GetCachePath(regionName);
+            long removed = 0;
 
-            var root = new DirectoryInfo(cachePath);
-            if (!root.Exists)
+            foreach (string key in GetKeys(regionName))
             {
-                return;
-            }
+                CacheItemPolicy policy = GetPolicy(key, regionName);
 
-            foreach (FileInfo fi in root.EnumerateFiles("*", SearchOption.AllDirectories))
-            {
-                if (minDate > fi.LastAccessTime)
+                // Did the item expire?
+                if (policy.AbsoluteExpiration < minDate)
                 {
-                    CurrentCacheSize -= fi.Length;
+                    string cacheItemPath = GetItemPath(key, regionName);
 
-                    fi.Delete();
+                    FileInfo fi = new FileInfo(cacheItemPath);
+
+                    if (fi.Exists)
+                    {
+                        CurrentCacheSize -= fi.Length;
+                        removed += fi.Length;
+
+                        // Remove cache entry
+                        fi.Delete();
+                    }
                 }
             }
+
+            return removed;
         }
 
         /// <summary>
@@ -301,6 +318,46 @@ namespace System.Runtime.Caching
             return Directory.EnumerateFiles(cachePath, "*", SearchOption.AllDirectories).Select(item => ReadFile(item).Key);
         }
 
+        /// <summary>
+        /// Shrinks the cache until the cache size is less than or equal to the size specified (in bytes).
+        /// This is a rather expensive operation, so use with discretion.
+        /// </summary>
+        /// <returns>The new size of the cache.</returns>
+        public long ShrinkCacheToSize(long newSize, string regionName = null)
+        {
+            long originalSize = 0, amount = 0, removed = 0;
+
+            // if we're shrinking the whole cache, we can use the stored
+            // size if it's available. If it's not available we calculate it and store
+            // it for next time.
+            if (regionName == null)
+            {
+                if (CurrentCacheSize == 0)
+                {
+                    CurrentCacheSize = GetCacheSize();
+                }
+
+                originalSize = CurrentCacheSize;
+            }
+            else
+            {
+                originalSize = GetCacheSize(regionName);
+            }
+
+            // Find out how much we need to get rid of
+            amount = originalSize - newSize;
+
+            // This will update CurrentCacheSize
+            removed = DeleteOldestFiles(amount, regionName);
+
+            // trigger the event
+            if (CacheResized != null)
+                CacheResized(this, new FileCacheEventArgs(originalSize - removed, MaxCacheSize));
+
+            // return the final size of the cache (or region)
+            return originalSize - removed;
+        }
+
         #endregion
 
         #region Helper methods
@@ -313,6 +370,7 @@ namespace System.Runtime.Caching
             FileStream stream = null;
             TimeSpan interval = TimeSpan.FromMilliseconds(50);
             TimeSpan totalTime = TimeSpan.Zero;
+
             while (stream == null)
             {
                 try
@@ -324,7 +382,7 @@ namespace System.Runtime.Caching
                     Thread.Sleep(interval);
                     totalTime += interval;
 
-                    //if we've waited too long, throw the original exception.
+                    // If we've waited too long, throw the original exception
                     if (AccessTimeout.Ticks != 0)
                     {
                         if (totalTime > AccessTimeout)
@@ -366,11 +424,13 @@ namespace System.Runtime.Caching
             {
                 CurrentCacheSize -= new FileInfo(filePath).Length;
             }
-
-            var directory = Path.GetDirectoryName(filePath);
-            if (!Directory.Exists(directory))
+            else
             {
-                Directory.CreateDirectory(directory);
+                var directory = Path.GetDirectoryName(filePath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
             }
 
             // Write the object payload
@@ -432,6 +492,63 @@ namespace System.Runtime.Caching
 
             if (policy.Priority != CacheItemPriority.Default)
                 throw new ArgumentOutOfRangeException("policy", policy.Priority, "Given policy prority is not supported.");
+        }
+
+        /// <summary>
+        /// Delete the oldest items in the cache to shrink the cache by the specified amount (in bytes).
+        /// </summary>
+        /// <returns>The amount of data that was actually removed.</returns>
+        private long DeleteOldestFiles(long amount, string regionName = null)
+        {
+            // Verify that we actually need to shrink
+            if (amount <= 0)
+            {
+                return 0;
+            }
+
+            // Heap of all items
+            var cacheReferences = new SortedSet<Tuple<DateTime, string>>(new CacheItemExpirationDateComparer());
+
+            // Build a heap of all files in cache region
+            foreach (string key in GetKeys(regionName))
+            {
+                // Build item reference
+                string cacheItemPath = GetItemPath(key, regionName);
+                CacheItemPolicy policy = GetPolicy(key, regionName);
+
+                cacheReferences.Add(new Tuple<DateTime, string>(policy.AbsoluteExpiration.DateTime, cacheItemPath));
+            }
+
+            // Remove cache items until size requirement is met
+            long removedBytes = 0;
+
+            var enumerator = cacheReferences.GetEnumerator();
+            while (removedBytes < amount && enumerator.MoveNext())
+            {
+                string cacheItemPath = enumerator.Current.Item2;
+
+                // Remove oldest item
+                FileInfo fi = new FileInfo(cacheItemPath);
+
+                if (fi.Exists)
+                {
+                    CurrentCacheSize -= fi.Length;
+                    removedBytes += fi.Length;
+
+                    // Remove cache entry
+                    fi.Delete();
+                }
+            }
+
+            return removedBytes;
+        }
+
+        private void NFileCache_MaxCacheSizeReached(object sender, FileCacheEventArgs e)
+        {
+            // Shrink the cache to 75% of the max size
+            // that way there's room for it to grow a bit
+            // before we have to do this again.
+            ShrinkCacheToSize((long)(MaxCacheSize * 0.75));
         }
 
         #endregion

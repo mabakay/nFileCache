@@ -52,6 +52,7 @@
     <Reference Include="System.Runtime.Caching" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CacheItemExpirationDateComparer.cs" />
     <Compile Include="IFileSerializer.cs" />
     <Compile Include="NFileCache.cs" />
     <Compile Include="FileCacheEventArgs.cs" />
