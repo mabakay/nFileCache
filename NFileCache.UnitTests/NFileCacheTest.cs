@@ -44,6 +44,7 @@ namespace nFileCache.UnitTests
         }
 
         #region Additional test attributes
+        
         // 
         //You can use the following additional attributes as you write your tests:
         //
@@ -71,12 +72,13 @@ namespace nFileCache.UnitTests
         //{
         //}
         //
+
         #endregion
 
         [TestMethod]
         public void AbsoluteExpirationTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("AbsoluteExpirationTest");
             CacheItemPolicy policy = new CacheItemPolicy();
 
             // Add an item and have it expire yesterday
@@ -91,7 +93,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void SlidingExpirationTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("SlidingExpirationTest");
             CacheItemPolicy policy = new CacheItemPolicy();
 
             // Add an item and have it expire 500 ms from now
@@ -121,7 +123,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void PolicySaveTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("PolicySaveTest");
             CacheItemPolicy policy = new CacheItemPolicy();
             policy.SlidingExpiration = new TimeSpan(1, 0, 0, 0, 0);
             target.Set("sliding", "test", policy);
@@ -140,13 +142,13 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void CustomObjectSaveTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("CustomObjectSaveTest");
 
             // Create custom object
-            CustomObjB custom = new CustomObjB()
+            CustomObjB custom = new CustomObjB
             {
                 Num = 5,
-                Obj = new CustomObjA()
+                Obj = new CustomObjA
                 {
                     Name = "test"
                 }
@@ -177,7 +179,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void CacheSizeTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("CacheSizeTest");
 
             // Flush cache to make sure we're starting fresh
             target.Flush();
@@ -199,7 +201,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void MaxCacheSizeTest()
         {
-            NFileCache target = new NFileCache(true);
+            NFileCache target = new NFileCache("MaxCacheSizeTest", true);
             target.MaxCacheSize = 0;
             bool isEventCalled = false;
 
@@ -212,20 +214,22 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void FlushTest()
         {
-            NFileCache target = new NFileCache();
-            target["foo"] = "bar";
+            NFileCache target = new NFileCache("FlushTest");
+
+            target.Add("foo", 1, DateTime.Now); // expires immediately
+            target.Add("bar", 2, DateTime.Now.AddDays(1)); // set to expire tomorrow
 
             // Attempt flush
-            target.Flush(DateTime.Now.AddDays(1));
+            target.Flush();
 
-            // Check to see if size ends up at zero (expected result)
-            Assert.AreEqual(0L, target.GetCacheSize());
+            Assert.IsNull(target["foo"]);
+            Assert.IsNotNull(target["bar"]);
         }
 
         [TestMethod]
         public void RemoveTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("RemoveTest");
             target.Set("test", "test", DateTimeOffset.Now.AddDays(3));
             object result = target.Get("test");
             Assert.AreEqual("test", result);
@@ -245,9 +249,75 @@ namespace nFileCache.UnitTests
         }
 
         [TestMethod]
+        public void ShrinkCacheTest()
+        {
+            NFileCache target = new NFileCache("ShrinkTest");
+
+            // Flush cache to make sure we're starting fresh
+            target.Flush();
+            
+            // Test empty case
+            Assert.AreEqual(0, target.ShrinkCacheToSize(0));
+
+            // Insert 4 items, and keep track of their size
+            target.Add("item1", "test1", DateTime.Now.AddDays(1));
+            long size1 = target.GetCacheSize();
+
+            target.Add("item2", "test22", DateTime.Now);
+            long size2 = target.GetCacheSize() - size1;
+
+            target.Add("item3", "test333", DateTime.Now.AddSeconds(10));
+            long size3 = target.GetCacheSize() - size1 - size2;
+
+            target.Add("item4", "test4444", DateTime.Now.AddDays(-1));
+            long size4 = target.GetCacheSize() - size1 - size2 - size3;
+
+            // Shrink to the size of the first 3 items (should remove item4 because it's the oldest, keeping the other 3)
+            long newSize = target.ShrinkCacheToSize(size1 + size2 + size3);
+            Assert.AreEqual(size1 + size2 + size3, newSize);
+
+            // Shrink to just smaller than two items (should keep just item1, delete item2 and item3)
+            newSize = target.ShrinkCacheToSize(size1 + size3 - 1);
+            Assert.AreEqual(size1, newSize);
+
+            // Shrink to size 1 (should delete everything)
+            newSize = target.ShrinkCacheToSize(1);
+            Assert.AreEqual(0, newSize);
+        }
+
+        [TestMethod]
+        public void AutoShrinkTest()
+        {
+            NFileCache target = new NFileCache("AutoShrinkTest");
+            
+            // Flush cache to make sure we're starting fresh
+            target.Flush();
+
+            target.MaxCacheSize = 20000;
+            target.CacheResized += delegate (object sender, FileCacheEventArgs args)
+            {
+                Assert.IsNull(target["foo0"]);
+                Assert.IsNotNull(target["foo10"]);
+                Assert.IsNotNull(target["foo40"]);
+            };
+
+            for (int i = 0; i < 100; i++)
+            {
+                target["foo" + i] = "bar";
+
+                // Test to make sure it leaves items that have been recently accessed.
+                if (i % 5 == 0 && i != 0)
+                {
+                    var foo10 = target.Get("foo10");
+                    var foo40 = target.Get("foo40");
+                }
+            }
+        }
+
+        [TestMethod]
         public void TestCount()
         {
-            NFileCache target = new NFileCache("testCount");
+            NFileCache target = new NFileCache("TestCount");
 
             // Flush cache to make sure we're starting fresh
             target.Flush();
@@ -279,7 +349,7 @@ namespace nFileCache.UnitTests
         [ExpectedException(typeof(IOException))]
         public void AccessTimeoutTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("AccessTimeoutTest");
             target.AccessTimeout = new TimeSpan(1);
             target["primer"] = 0;
 
@@ -312,7 +382,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void GetEnumeratorTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("GetEnumeratorTest");
 
             // Flush cache to make sure we're starting fresh
             target.Flush();
@@ -331,7 +401,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void GetKeysTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("GetKeysTest");
 
             // Flush cache to make sure we're starting fresh
             target.Flush();
@@ -345,7 +415,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void GetValuesTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("GetValuesTest");
 
             // Flush cache to make sure we're starting fresh
             target.Flush();
@@ -359,7 +429,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void StreamItemTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("StreamItemTest");
 
             // Flush cache to make sure we're starting fresh
             target.Flush();
