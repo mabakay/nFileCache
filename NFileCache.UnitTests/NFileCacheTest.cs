@@ -44,7 +44,7 @@ namespace nFileCache.UnitTests
         }
 
         #region Additional test attributes
-        
+
         // 
         //You can use the following additional attributes as you write your tests:
         //
@@ -181,9 +181,6 @@ namespace nFileCache.UnitTests
         {
             NFileCache target = new NFileCache("CacheSizeTest");
 
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
-
             target["foo"] = "bar";
             target["foo"] = "foobar";
 
@@ -251,11 +248,8 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void ShrinkCacheTest()
         {
-            NFileCache target = new NFileCache("ShrinkTest");
+            NFileCache target = new NFileCache("ShrinkCacheTest");
 
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
-            
             // Test empty case
             Assert.AreEqual(0, target.ShrinkCacheToSize(0));
 
@@ -289,14 +283,11 @@ namespace nFileCache.UnitTests
         public void AutoShrinkTest()
         {
             NFileCache target = new NFileCache("AutoShrinkTest");
-            
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
+            target.DefaultPolicy = new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(1D) };
 
             target.MaxCacheSize = 20000;
             target.CacheResized += delegate (object sender, FileCacheEventArgs args)
             {
-                Assert.IsNull(target["foo0"]);
                 Assert.IsNotNull(target["foo10"]);
                 Assert.IsNotNull(target["foo40"]);
             };
@@ -319,9 +310,6 @@ namespace nFileCache.UnitTests
         {
             NFileCache target = new NFileCache("TestCount");
 
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
-
             target["test"] = "test";
             target["test"] = "bar";
 
@@ -335,10 +323,10 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void DefaultRegionTest()
         {
-            NFileCache cacheWithDefaultRegion = new NFileCache();
+            NFileCache cacheWithDefaultRegion = new NFileCache("DefaultRegionTest");
             cacheWithDefaultRegion.DefaultRegion = "foo";
 
-            NFileCache defaultCache = new NFileCache();
+            NFileCache defaultCache = new NFileCache("DefaultRegionTest");
             cacheWithDefaultRegion["foo"] = "bar";
 
             string pull = defaultCache.Get("foo", "foo") as string;
@@ -366,7 +354,7 @@ namespace nFileCache.UnitTests
         [TestMethod]
         public void DefaultPolicyTest()
         {
-            NFileCache target = new NFileCache();
+            NFileCache target = new NFileCache("DefaultPolicyTest");
             CacheItemPolicy policy = new CacheItemPolicy();
             policy.SlidingExpiration = new TimeSpan(10);
             target.DefaultPolicy = policy;
@@ -384,9 +372,6 @@ namespace nFileCache.UnitTests
         {
             NFileCache target = new NFileCache("GetEnumeratorTest");
 
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
-
             target["foo"] = 1;
             target["bar"] = 2;
 
@@ -403,9 +388,6 @@ namespace nFileCache.UnitTests
         {
             NFileCache target = new NFileCache("GetKeysTest");
 
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
-
             target["foo"] = 1;
             target["bar"] = 2;
 
@@ -417,9 +399,6 @@ namespace nFileCache.UnitTests
         {
             NFileCache target = new NFileCache("GetValuesTest");
 
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
-
             target["foo"] = 1;
             target["bar"] = 2;
 
@@ -430,9 +409,6 @@ namespace nFileCache.UnitTests
         public void StreamItemTest()
         {
             NFileCache target = new NFileCache("StreamItemTest");
-
-            // Flush cache to make sure we're starting fresh
-            target.Flush();
 
             const string poem = "Biały koń marzeń";
 
