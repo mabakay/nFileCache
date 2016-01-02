@@ -14,6 +14,7 @@ using System.Linq;
 using System.Runtime.Caching;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace nFileCache.UnitTests
@@ -22,56 +23,40 @@ namespace nFileCache.UnitTests
     ///This is a test class for NFileCacheTest and is intended
     ///to contain all NFileCacheTest Unit Tests
     ///</summary>
-    [TestClass()]
+    [TestClass]
     public class NFileCacheTest
     {
-        private TestContext testContextInstance;
+        #region Additional test attributes
 
         /// <summary>
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
+        public TestContext TestContext { get; set; }
 
-        #region Additional test attributes
-
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
         //Use ClassInitialize to run code before running the first test in the class
         //[ClassInitialize()]
         //public static void MyClassInitialize(TestContext testContext)
         //{
         //}
-        //
+
         //Use ClassCleanup to run code after all tests in a class have run
         //[ClassCleanup()]
         //public static void MyClassCleanup()
         //{
         //}
-        //
+
         //Use TestInitialize to run code before running each test
         //[TestInitialize()]
         //public void MyTestInitialize()
         //{
         //}
-        //
+
         //Use TestCleanup to run code after each test has run
         //[TestCleanup()]
         //public void MyTestCleanup()
         //{
         //}
-        //
 
         #endregion
 
@@ -230,11 +215,10 @@ namespace nFileCache.UnitTests
             target.Set("test", "test", DateTimeOffset.Now.AddDays(3));
             object result = target.Get("test");
             Assert.AreEqual("test", result);
-
+            
             // Check file system to be sure item was created
-            string fileName = "test".GetHashCode().ToString("0000");
-            string cachePath = Path.Combine(target.CacheDir, "_", fileName.Substring(0, 2), fileName.Substring(2));
-            Assert.IsTrue(File.Exists(cachePath));
+            string itemPath = target.GetItemPath("test");
+            Assert.IsTrue(File.Exists(itemPath));
 
             // Now delete
             target.Remove("test");
@@ -242,7 +226,7 @@ namespace nFileCache.UnitTests
             Assert.IsNull(result);
 
             // Check file system to be sure item was removed
-            Assert.IsFalse(File.Exists(cachePath));
+            Assert.IsFalse(File.Exists(itemPath));
         }
 
         [TestMethod]
@@ -286,7 +270,7 @@ namespace nFileCache.UnitTests
             target.DefaultPolicy = new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(1D) };
 
             target.MaxCacheSize = 20000;
-            target.CacheResized += delegate (object sender, FileCacheEventArgs args)
+            target.CacheResized += (object sender, FileCacheEventArgs args) =>
             {
                 Assert.IsNotNull(target["foo10"]);
                 Assert.IsNotNull(target["foo40"]);
@@ -339,13 +323,11 @@ namespace nFileCache.UnitTests
         {
             NFileCache target = new NFileCache("AccessTimeoutTest");
             target.AccessTimeout = new TimeSpan(1);
-            target["primer"] = 0;
+            target["foo"] = 0;
 
-            string fileName = "foo".GetHashCode().ToString("0000");
-            string filePath = Path.Combine(target.CacheDir, "_", fileName.Substring(0, 2), fileName.Substring(2));
-
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-            using (FileStream stream = File.Open(filePath, FileMode.Create))
+            // Lock actual file system record
+            string itemPath = target.GetItemPath("foo");
+            using (FileStream stream = File.Open(itemPath, FileMode.Create))
             {
                 object result = target["foo"];
             }
@@ -416,6 +398,23 @@ namespace nFileCache.UnitTests
             string textvalue = new StreamReader((Stream)target["stream"]).ReadToEnd();
 
             Assert.AreEqual(textvalue, poem);
+        }
+
+        [TestMethod]
+        public void MultiThreadTest()
+        {
+            NFileCache target = new NFileCache("MultiThreadTest");
+
+            const int threadCount = 4;
+            var rnd = new Random();
+
+            Parallel.For(0, threadCount, i =>
+            {
+                for (int j = 0; j < 500; j++)
+                {
+                    target["foo" + rnd.Next(10)] = "bar" + i;
+                }
+            });
         }
     }
 }
