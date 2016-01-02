@@ -7,11 +7,15 @@ nFileCache is distributed under the Microsoft Public License (Ms-PL).
 Consult "LICENSE.txt" included in this package for the complete Ms-PL license.
 */
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
+
+[assembly: InternalsVisibleTo("NFileCache.UnitTests")]
 
 namespace System.Runtime.Caching
 {
@@ -322,6 +326,8 @@ namespace System.Runtime.Caching
         /// Shrinks the cache until the cache size is less than or equal to the size specified (in bytes).
         /// This is a rather expensive operation, so use with discretion.
         /// </summary>
+        /// <param name="newSize">New maximum cache size.</param>
+        /// <param name="regionName">The region to shrink. If NULL, will shrink all regions.</param>
         /// <returns>The new size of the cache.</returns>
         public long ShrinkCacheToSize(long newSize, string regionName = null)
         {
@@ -379,12 +385,16 @@ namespace System.Runtime.Caching
                 }
                 catch (IOException)
                 {
-                    Thread.Sleep(interval);
-                    totalTime += interval;
+                    if (AccessTimeout == TimeSpan.Zero || AccessTimeout > interval)
+                    {
+                        Thread.Sleep(interval);
+                    }
 
                     // If we've waited too long, throw the original exception
-                    if (AccessTimeout.Ticks != 0)
+                    if (AccessTimeout > TimeSpan.Zero)
                     {
+                        totalTime += interval;
+
                         if (totalTime > AccessTimeout)
                         {
                             throw;
@@ -426,10 +436,12 @@ namespace System.Runtime.Caching
             }
             else
             {
-                var directory = Path.GetDirectoryName(filePath);
-                if (!Directory.Exists(directory))
+                var directoryPath = Path.GetDirectoryName(filePath);
+                var di = new DirectoryInfo(directoryPath);
+
+                if (!di.Exists)
                 {
-                    Directory.CreateDirectory(directory);
+                    di.Create();
                 }
             }
 
@@ -453,7 +465,7 @@ namespace System.Runtime.Caching
         /// <summary>
         /// Builds cache root folder path based on given region name.
         /// </summary>
-        private string GetCachePath(string regionName = null)
+        internal string GetCachePath(string regionName = null)
         {
             regionName = string.Format("{0}{1}", "_", regionName == null ? string.Empty : regionName.GetHashCode().ToString());
 
@@ -463,14 +475,12 @@ namespace System.Runtime.Caching
         /// <summary>
         /// Builds cache file phisical disk file paths.
         /// </summary>
-        private string GetItemPath(string key, string regionName = null)
+        internal string GetItemPath(string key, string regionName = null)
         {
             string directory = GetCachePath(regionName);
             string fileName = key.GetHashCode().ToString("0000");
 
-            string filePath = Path.Combine(directory, fileName.Substring(0, 2), fileName.Substring(2));
-
-            return filePath;
+            return Path.Combine(directory, fileName.Substring(0, 2), fileName.Substring(2));
         }
 
         /// <summary>
@@ -658,14 +668,9 @@ namespace System.Runtime.Caching
                 if (item.Policy.SlidingExpiration > ObjectCache.NoSlidingExpiration)
                 {
                     DateTimeOffset absoluteExpiration = DateTime.Now.Add(item.Policy.SlidingExpiration);
+                    item.Policy.AbsoluteExpiration = absoluteExpiration;
 
-                    // Minimize disk access for performance optimalization
-                    if (absoluteExpiration - item.Policy.AbsoluteExpiration >= TimeSpan.FromSeconds(1) || absoluteExpiration < item.Policy.AbsoluteExpiration)
-                    {
-                        item.Policy.AbsoluteExpiration = absoluteExpiration;
-
-                        WriteFile(cacheItemPath, item);
-                    }
+                    WriteFile(cacheItemPath, item);
                 }
             }
 
