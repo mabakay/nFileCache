@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("nFileCache.Signed")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Implementation of the .NET System.Runtime.Caching.ObjectCache that uses the filesystem.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("mabakay")]
 [assembly: AssemblyProduct("nFileCache.Signed")]
-[assembly: AssemblyCopyright("Copyright © mabakay 2015")]
+[assembly: AssemblyCopyright("Copyright © mabakay 2015, 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

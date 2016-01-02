@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("mabakay")]
 [assembly: AssemblyProduct("NFileCache.UnitTests")]
-[assembly: AssemblyCopyright("Copyright © mabakay 2015")]
+[assembly: AssemblyCopyright("Copyright © mabakay 2015, 2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
