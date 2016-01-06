@@ -36,6 +36,9 @@ namespace System.Runtime.Caching
         private TimeSpan _accessTimeout = TimeSpan.Zero;
         private long _maxCacheSize = long.MaxValue;
 
+        private static NFileCache _defaultCache;
+        private static readonly object _defaultCacheLock = new object();
+
         #endregion
 
         #region Properties
@@ -115,6 +118,29 @@ namespace System.Runtime.Caching
         /// then returned size maps only items added and removed from time the cache was created.
         /// </summary>
         public long CurrentCacheSize { get; private set; }
+
+        /// <summary>
+        /// Gets a reference to the default <see cref="T:System.Runtime.Caching.NFileCache" /> instance.
+        /// </summary>
+        /// <returns>The default instance of the cache.</returns>
+        public static NFileCache Default
+        {
+            get
+            {
+                if (NFileCache._defaultCache == null)
+                {
+                    lock (NFileCache._defaultCacheLock)
+                    {
+                        if (NFileCache._defaultCache == null)
+                        {
+                            NFileCache._defaultCache = new NFileCache();
+                        }
+                    }
+                }
+
+                return NFileCache._defaultCache;
+            }
+        }
 
         /// <summary>
         /// Event that will be called when <see cref="MaxCacheSize"/> is reached.
@@ -581,7 +607,7 @@ namespace System.Runtime.Caching
             };
 
             ValidatePolicy(policy);
-            
+
             object oldData = null;
             string cacheItemPath = GetItemPath(key, regionName);
 
