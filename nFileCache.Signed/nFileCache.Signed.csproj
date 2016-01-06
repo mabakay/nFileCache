@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -51,26 +51,24 @@
     <Compile Include="..\nFileCache\FileCacheItem.cs">
       <Link>FileCacheItem.cs</Link>
     </Compile>
-    <Compile Include="..\nFileCache\FileSerializer.cs">
-      <Link>FileSerializer.cs</Link>
-    </Compile>
-    <Compile Include="..\nFileCache\IFileSerializer.cs">
-      <Link>IFileSerializer.cs</Link>
-    </Compile>
     <Compile Include="..\nFileCache\NFileCache.cs">
       <Link>NFileCache.cs</Link>
     </Compile>
-    <Compile Include="..\nFileCache\SerializableCacheItemPolicy.cs">
-      <Link>SerializableCacheItemPolicy.cs</Link>
+    <Compile Include="..\nFileCache\Serializer\FileSerializer.cs">
+      <Link>Serializer\FileSerializer.cs</Link>
     </Compile>
-    <Compile Include="..\nFileCache\SerializableStream.cs">
-      <Link>SerializableStream.cs</Link>
+    <Compile Include="..\nFileCache\Serializer\IFileSerializer.cs">
+      <Link>Serializer\IFileSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\nFileCache\Serializer\Surrogates\CacheItemPolicySurrogate.cs">
+      <Link>Serializer\Surrogates\CacheItemPolicySurrogate.cs</Link>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="nFileCache.snk" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -17,7 +17,7 @@ namespace System.Runtime.Caching
     {
         #region Fields
 
-        private readonly SerializationBinder _binder; 
+        private readonly SerializationBinder _binder;
 
         #endregion
 
@@ -26,7 +26,7 @@ namespace System.Runtime.Caching
         public FileSerializer(SerializationBinder binder)
         {
             _binder = binder;
-        } 
+        }
 
         #endregion
 
@@ -34,21 +34,20 @@ namespace System.Runtime.Caching
 
         public FileCacheItem Deserialize(Stream stream)
         {
-            FileCacheItem item = null;
+            var surrogateSelector = new SurrogateSelector();
+            surrogateSelector.AddSurrogate(typeof(CacheItemPolicy), new StreamingContext(StreamingContextStates.All), new CacheItemPolicySurrogate());
 
-            BinaryFormatter formatter = new BinaryFormatter { Binder = _binder };
+            BinaryFormatter formatter = new BinaryFormatter();
+            formatter.SurrogateSelector = surrogateSelector;
+            formatter.Binder = _binder;
+
+            FileCacheItem item = null;
 
             try
             {
                 string key = (string)formatter.Deserialize(stream);
-                CacheItemPolicy policy = ((SerializableCacheItemPolicy)formatter.Deserialize(stream)).GetCacheItemPolicy();
+                CacheItemPolicy policy = (CacheItemPolicy)formatter.Deserialize(stream);
                 object payload = formatter.Deserialize(stream);
-
-                SerializableStream serializableStream = payload as SerializableStream;
-                if (serializableStream != null)
-                {
-                    payload = new MemoryStream(serializableStream.Data);
-                }
 
                 item = new FileCacheItem(key, policy, payload);
             }
@@ -62,22 +61,16 @@ namespace System.Runtime.Caching
 
         public void Serialize(Stream stream, FileCacheItem cacheItem)
         {
+            var surrogateSelector = new SurrogateSelector();
+            surrogateSelector.AddSurrogate(typeof(CacheItemPolicy), new StreamingContext(StreamingContextStates.All), new CacheItemPolicySurrogate());
+
             BinaryFormatter formatter = new BinaryFormatter();
+            formatter.SurrogateSelector = surrogateSelector;
 
-            string key = cacheItem.Key;
-            SerializableCacheItemPolicy policy = new SerializableCacheItemPolicy(cacheItem.Policy);
-            object payload = cacheItem.Payload;
-
-            Stream streamValue = cacheItem.Payload as Stream;
-            if (streamValue != null)
-            {
-                payload = new SerializableStream(streamValue);
-            }
-
-            formatter.Serialize(stream, key);
-            formatter.Serialize(stream, policy);
-            formatter.Serialize(stream, payload);
-        } 
+            formatter.Serialize(stream, cacheItem.Key);
+            formatter.Serialize(stream, cacheItem.Policy);
+            formatter.Serialize(stream, cacheItem.Payload);
+        }
 
         #endregion
     }

@@ -573,8 +573,15 @@ namespace System.Runtime.Caching
             if (value == null)
                 throw new ArgumentNullException("value");
 
-            ValidatePolicy(policy);
+            // Clone policy object
+            policy = new CacheItemPolicy
+            {
+                AbsoluteExpiration = policy.AbsoluteExpiration,
+                SlidingExpiration = policy.SlidingExpiration
+            };
 
+            ValidatePolicy(policy);
+            
             object oldData = null;
             string cacheItemPath = GetItemPath(key, regionName);
 
@@ -589,6 +596,12 @@ namespace System.Runtime.Caching
                 {
                     oldData = null;
                 }
+            }
+
+            // Does the item have a sliding expiration?
+            if (policy.SlidingExpiration > ObjectCache.NoSlidingExpiration)
+            {
+                policy.AbsoluteExpiration = DateTime.Now.Add(policy.SlidingExpiration);
             }
 
             FileCacheItem newItem = new FileCacheItem(key, policy, value);
@@ -667,8 +680,7 @@ namespace System.Runtime.Caching
                 // Does the item have a sliding expiration?
                 if (item.Policy.SlidingExpiration > ObjectCache.NoSlidingExpiration)
                 {
-                    DateTimeOffset absoluteExpiration = DateTime.Now.Add(item.Policy.SlidingExpiration);
-                    item.Policy.AbsoluteExpiration = absoluteExpiration;
+                    item.Policy.AbsoluteExpiration = DateTime.Now.Add(item.Policy.SlidingExpiration); ;
 
                     WriteFile(cacheItemPath, item);
                 }

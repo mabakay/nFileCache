@@ -92,8 +92,8 @@ namespace nFileCache.UnitTests
             object result = target.Get("test");
             Assert.AreEqual("test", result);
 
-            // Sleep for another 200
-            Thread.Sleep(200);
+            // Sleep for another 350
+            Thread.Sleep(350);
 
             // Then try to access the item
             result = target.Get("test");
@@ -117,7 +117,7 @@ namespace nFileCache.UnitTests
             Assert.AreEqual(policy.SlidingExpiration, returnPolicy.SlidingExpiration);
 
             policy = new CacheItemPolicy();
-            policy.AbsoluteExpiration = DateTimeOffset.Now.AddDays(1);
+            policy.AbsoluteExpiration = DateTime.Now.AddDays(1);
             target.Set("absolute", "test", policy.AbsoluteExpiration);
 
             returnPolicy = target.GetPolicy("absolute");
@@ -212,7 +212,7 @@ namespace nFileCache.UnitTests
         public void RemoveTest()
         {
             NFileCache target = new NFileCache("RemoveTest");
-            target.Set("test", "test", DateTimeOffset.Now.AddDays(3));
+            target.Set("test", "test", DateTime.Now.AddDays(3));
             object result = target.Get("test");
             Assert.AreEqual("test", result);
             
