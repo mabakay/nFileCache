@@ -1,5 +1,5 @@
 /*
-Copyright 2015 mabakay, based on FileCache (http://fc.codeplex.com)
+Copyright © mabakay 2015-2016, based on FileCache (http://fc.codeplex.com)
 
 This file is part of nFileCache (https://github.com/mabakay/nFileCache).
 
