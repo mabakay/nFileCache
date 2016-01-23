@@ -12,6 +12,6 @@ cache["foo"] = "bar";
 Console.WriteLine("Reading foo from cache: {0}", cache["foo"]);
 ```
 
-By default nFileCache internally uses .NET binary serializer and supports all value types, streams and classes marked with Serializable attribute. Optionally you can extend or change this behavior by providing own implementation of serializer class.
+By default nFileCache internally uses .NET binary serializer and supports all value types, streams, anonymous classes and classes marked with Serializable attribute. Optionally you can extend or change this behavior by providing own implementation of serializer class.
 
 Checkout the [wiki](https://github.com/mabakay/nFileCache/wiki) for more documentation.
