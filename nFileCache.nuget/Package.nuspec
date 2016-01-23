@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>nFileCache</id>
-    <version>0.9.0-beta</version>
+    <version>0.9.1-beta</version>
     <title>nFileCache</title>
     <authors>mabakay</authors>
     <owners></owners>
@@ -25,7 +25,6 @@
     <references></references>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System.Runtime.Caching" targetFramework="net40" />
-      <frameworkAssembly assemblyName="Microsoft.CSharp" targetFramework="net40" />
     </frameworkAssemblies>
     <tags>cache objectcache image System.Runtime.Caching.ObjectCache</tags>
   </metadata>
