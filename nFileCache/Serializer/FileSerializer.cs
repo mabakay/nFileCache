@@ -34,7 +34,7 @@ namespace System.Runtime.Caching
 
         public FileCacheItem Deserialize(Stream stream)
         {
-            var surrogateSelector = new SurrogateSelector();
+            var surrogateSelector = new AnonymousTypeSurrogateSelector();
             surrogateSelector.AddSurrogate(typeof(CacheItemPolicy), new StreamingContext(StreamingContextStates.All), new CacheItemPolicySurrogate());
 
             BinaryFormatter formatter = new BinaryFormatter();
@@ -61,7 +61,7 @@ namespace System.Runtime.Caching
 
         public void Serialize(Stream stream, FileCacheItem cacheItem)
         {
-            var surrogateSelector = new SurrogateSelector();
+            var surrogateSelector = new AnonymousTypeSurrogateSelector();
             surrogateSelector.AddSurrogate(typeof(CacheItemPolicy), new StreamingContext(StreamingContextStates.All), new CacheItemPolicySurrogate());
 
             BinaryFormatter formatter = new BinaryFormatter();

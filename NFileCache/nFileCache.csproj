@@ -53,6 +53,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheItemExpirationDateComparer.cs" />
+    <Compile Include="Serializer\AnonymousTypeSurrogateSelector.cs" />
+    <Compile Include="Serializer\Surrogates\AnonymousTypeSurrogate.cs" />
     <Compile Include="Serializer\Surrogates\CacheItemPolicySurrogate.cs" />
     <Compile Include="Serializer\IFileSerializer.cs" />
     <Compile Include="NFileCache.cs" />
