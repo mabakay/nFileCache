@@ -10,7 +10,7 @@
       nFileCache is a implementation of the .NET System.Runtime.Caching.ObjectCache that uses the filesystem as the target location.
     </description>
     <releaseNotes>
-      First release.
+      Added support for anonymous classes.
     </releaseNotes>
     <summary>
       Implementation of the .NET System.Runtime.Caching.ObjectCache that uses the filesystem.
