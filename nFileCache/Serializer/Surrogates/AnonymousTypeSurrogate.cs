@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Reflection;
 using System.Runtime.Serialization;
 
@@ -28,15 +27,15 @@ namespace System.Runtime.Caching
         /// </summary>
         public object SetObjectData(object obj, SerializationInfo info, StreamingContext context, ISurrogateSelector selector)
         {
-            var expandoObject = (IDictionary<string, object>)new ExpandoObject();
+            var dictionary = new Dictionary<string, object>();
 
             var enumerator = info.GetEnumerator();
             while (enumerator.MoveNext())
             {
-                expandoObject.Add(enumerator.Name, enumerator.Value);
+                dictionary.Add(enumerator.Name, enumerator.Value);
             }
 
-            return expandoObject;
+            return dictionary;
         }
     }
 }

@@ -408,10 +408,10 @@ namespace nFileCache.UnitTests
             const string poem = "Biały koń marzeń";
 
             target["anonymousItem"] = new { Id = 11, Poem = poem };
-            var anonymousItem = (dynamic)target["anonymousItem"];
+            var anonymousItem = (IDictionary<string, object>)target["anonymousItem"];
 
-            Assert.AreEqual(anonymousItem.Id, 11);
-            Assert.AreEqual(anonymousItem.Poem, poem);
+            Assert.AreEqual(anonymousItem["Id"], 11);
+            Assert.AreEqual(anonymousItem["Poem"], poem);
         }
 
         [TestMethod]
