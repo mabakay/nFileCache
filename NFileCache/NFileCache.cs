@@ -317,6 +317,11 @@ namespace System.Runtime.Caching
             return removed;
         }
 
+        public T Get<T>(string key, string regionName = null)
+        {
+            return (T)Get(key, regionName);
+        }
+
         /// <summary>
         /// Returns the policy attached to a given cache item.  
         /// </summary>
@@ -354,7 +359,7 @@ namespace System.Runtime.Caching
         /// <param name="newSize">New maximum cache size.</param>
         /// <param name="regionName">The region to shrink. If NULL, will shrink all regions.</param>
         /// <returns>The new size of the cache.</returns>
-        public long ShrinkCacheToSize(long newSize, string regionName = null)
+        public long Trim(long newSize, string regionName = null)
         {
             long originalSize = 0, amount = 0, removed = 0;
 
@@ -583,7 +588,7 @@ namespace System.Runtime.Caching
             // Shrink the cache to 75% of the max size
             // that way there's room for it to grow a bit
             // before we have to do this again.
-            ShrinkCacheToSize((long)(MaxCacheSize * 0.75));
+            Trim((long)(MaxCacheSize * 0.75));
         }
 
         #endregion
