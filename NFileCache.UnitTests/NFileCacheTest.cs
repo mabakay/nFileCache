@@ -215,7 +215,7 @@ namespace nFileCache.UnitTests
             target.Set("test", "test", DateTime.Now.AddDays(3));
             object result = target.Get("test");
             Assert.AreEqual("test", result);
-            
+
             // Check file system to be sure item was created
             string itemPath = target.GetItemPath("test");
             Assert.IsTrue(File.Exists(itemPath));
@@ -235,7 +235,7 @@ namespace nFileCache.UnitTests
             NFileCache target = new NFileCache("ShrinkCacheTest");
 
             // Test empty case
-            Assert.AreEqual(0, target.ShrinkCacheToSize(0));
+            Assert.AreEqual(0, target.Trim(0));
 
             // Insert 4 items, and keep track of their size
             target.Add("item1", "test1", DateTime.Now.AddDays(1));
@@ -251,15 +251,15 @@ namespace nFileCache.UnitTests
             long size4 = target.GetCacheSize() - size1 - size2 - size3;
 
             // Shrink to the size of the first 3 items (should remove item4 because it's the oldest, keeping the other 3)
-            long newSize = target.ShrinkCacheToSize(size1 + size2 + size3);
+            long newSize = target.Trim(size1 + size2 + size3);
             Assert.AreEqual(size1 + size2 + size3, newSize);
 
             // Shrink to just smaller than two items (should keep just item1, delete item2 and item3)
-            newSize = target.ShrinkCacheToSize(size1 + size3 - 1);
+            newSize = target.Trim(size1 + size3 - 1);
             Assert.AreEqual(size1, newSize);
 
             // Shrink to size 1 (should delete everything)
-            newSize = target.ShrinkCacheToSize(1);
+            newSize = target.Trim(1);
             Assert.AreEqual(0, newSize);
         }
 
@@ -398,6 +398,20 @@ namespace nFileCache.UnitTests
             string textvalue = new StreamReader((Stream)target["stream"]).ReadToEnd();
 
             Assert.AreEqual(textvalue, poem);
+        }
+
+        [TestMethod]
+        public void AnonymousTypeItemTest()
+        {
+            NFileCache target = new NFileCache("AnonymousTypeItemTest");
+
+            const string poem = "Biały koń marzeń";
+
+            target["anonymousItem"] = new { Id = 11, Poem = poem };
+            var anonymousItem = (dynamic)target["anonymousItem"];
+
+            Assert.AreEqual(anonymousItem.Id, 11);
+            Assert.AreEqual(anonymousItem.Poem, poem);
         }
 
         [TestMethod]

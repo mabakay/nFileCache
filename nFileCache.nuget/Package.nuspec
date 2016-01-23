@@ -25,6 +25,7 @@
     <references></references>
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System.Runtime.Caching" targetFramework="net40" />
+      <frameworkAssembly assemblyName="Microsoft.CSharp" targetFramework="net40" />
     </frameworkAssemblies>
     <tags>cache objectcache image System.Runtime.Caching.ObjectCache</tags>
   </metadata>
